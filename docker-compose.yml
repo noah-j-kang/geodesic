@@ -1,21 +1,15 @@
-version: '3.8'
 
 networks:
   frontend-tier:
     driver: bridge
-    description: "Isolated network for UI to communicate with API Gateway"
   backend-tier:
     driver: bridge
-    description: "Isolated network for API Gateway to communicate with workers/services"
   data-tier:
     driver: bridge
-    description: "Isolated network for databases and broker"
 
 volumes:
   postgres_data:
-    description: "Persistent storage for PostgreSQL metadata"
   hnsw_index_data:
-    description: "Persistent storage for HNSW RAM graph"
 
 services:
   # -------------------------------------
@@ -40,7 +34,7 @@ services:
           memory: 1G
 
   postgres:
-    image: postgres:15-alpine
+    image: public.ecr.aws/docker/library/postgres:15-alpine
     container_name: topos_postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -121,6 +115,7 @@ services:
     build:
       context: ./backend/vector_search
     container_name: topos_vector_search
+    command: uvicorn main:app --host 0.0.0.0 --port 8001
     volumes:
       - ./backend/vector_search:/app
       - hnsw_index_data:/app/data
@@ -138,6 +133,7 @@ services:
     build:
       context: ./backend/etl/ingestion
     container_name: topos_etl_ingestion
+    command: celery -A worker worker --loglevel=info
     environment:
       - CELERY_BROKER_URL=redis://broker:6379/0
       - CELERY_RESULT_BACKEND=redis://broker:6379/0
@@ -157,6 +153,7 @@ services:
     build:
       context: ./backend/etl/dsp
     container_name: topos_etl_dsp
+    command: celery -A worker worker --loglevel=info
     environment:
       - CELERY_BROKER_URL=redis://broker:6379/0
       - CELERY_RESULT_BACKEND=redis://broker:6379/0
@@ -176,6 +173,7 @@ services:
     build:
       context: ./backend/etl/topology
     container_name: topos_etl_topology
+    command: celery -A worker worker --loglevel=info
     environment:
       - CELERY_BROKER_URL=redis://broker:6379/0
       - CELERY_RESULT_BACKEND=redis://broker:6379/0

@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 import time
 
-from .hnsw_node import HNSWNode
-from .semantic_router import SemanticRouter
+from hnsw_node import HNSWNode
+from semantic_router import SemanticRouter
 
 app = FastAPI(title="Vector Search Node", version="0.1.0")
 
@@ -15,10 +15,10 @@ semantic_router = SemanticRouter()
 # Data models
 class IngestPayload(BaseModel):
     spotify_track_id: str
-    topological_signature: List[float] = Field(..., min_items=1500, max_items=1500)
+    topological_signature: List[float] = Field(..., min_length=1500, max_length=1500)
 
 class QueryPayload(BaseModel):
-    target_vector: List[float] = Field(..., min_items=1500, max_items=1500)
+    target_vector: List[float] = Field(..., min_length=1500, max_length=1500)
     k: int = 20
 
 class RoutePayload(BaseModel):

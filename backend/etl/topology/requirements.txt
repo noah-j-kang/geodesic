@@ -1,0 +1,5 @@
+giotto-tda
+gudhi
+numpy
+celery
+redis
