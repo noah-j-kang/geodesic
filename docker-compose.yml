@@ -1,0 +1,192 @@
+version: '3.8'
+
+networks:
+  frontend-tier:
+    driver: bridge
+    description: "Isolated network for UI to communicate with API Gateway"
+  backend-tier:
+    driver: bridge
+    description: "Isolated network for API Gateway to communicate with workers/services"
+  data-tier:
+    driver: bridge
+    description: "Isolated network for databases and broker"
+
+volumes:
+  postgres_data:
+    description: "Persistent storage for PostgreSQL metadata"
+  hnsw_index_data:
+    description: "Persistent storage for HNSW RAM graph"
+
+services:
+  # -------------------------------------
+  # DATA TIER & BROKERS
+  # -------------------------------------
+  broker:
+    image: redis:7-alpine
+    container_name: topos_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - data-tier
+      - backend-tier
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: topos_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-topos_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - data-tier
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # -------------------------------------
+  # API GATEWAY (Workstream 3)
+  # -------------------------------------
+  api-gateway:
+    build: 
+      context: ./backend/api
+    container_name: topos_api_gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://broker:6379/0
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/topos_db
+    networks:
+      - frontend-tier
+      - backend-tier
+    depends_on:
+      broker:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./backend/api:/app # Bind mount for hot-reloading
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # -------------------------------------
+  # CLIENT APPLICATION (Workstream 4)
+  # -------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+    container_name: topos_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - frontend-tier
+    depends_on:
+      api-gateway:
+        condition: service_started
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # -------------------------------------
+  # HNSW VECTOR NODE (Workstream 2)
+  # -------------------------------------
+  vector-search:
+    build:
+      context: ./backend/vector_search
+    container_name: topos_vector_search
+    volumes:
+      - ./backend/vector_search:/app
+      - hnsw_index_data:/app/data
+    networks:
+      - backend-tier
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  # -------------------------------------
+  # ETL PIPELINE WORKERS (Workstream 1)
+  # -------------------------------------
+  etl-worker-ingestion:
+    build:
+      context: ./backend/etl/ingestion
+    container_name: topos_etl_ingestion
+    environment:
+      - CELERY_BROKER_URL=redis://broker:6379/0
+      - CELERY_RESULT_BACKEND=redis://broker:6379/0
+    networks:
+      - backend-tier
+    depends_on:
+      broker:
+        condition: service_healthy
+    volumes:
+      - ./backend/etl/ingestion:/app
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  etl-worker-dsp:
+    build:
+      context: ./backend/etl/dsp
+    container_name: topos_etl_dsp
+    environment:
+      - CELERY_BROKER_URL=redis://broker:6379/0
+      - CELERY_RESULT_BACKEND=redis://broker:6379/0
+    networks:
+      - backend-tier
+    depends_on:
+      broker:
+        condition: service_healthy
+    volumes:
+      - ./backend/etl/dsp:/app
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  etl-worker-topology:
+    build:
+      context: ./backend/etl/topology
+    container_name: topos_etl_topology
+    environment:
+      - CELERY_BROKER_URL=redis://broker:6379/0
+      - CELERY_RESULT_BACKEND=redis://broker:6379/0
+    networks:
+      - backend-tier
+    depends_on:
+      broker:
+        condition: service_healthy
+    volumes:
+      - ./backend/etl/topology:/app
+    deploy:
+      resources:
+        limits:
+          memory: 4G
