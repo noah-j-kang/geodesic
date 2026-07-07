@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-graphite text-white font-mono antialiased overflow-hidden m-0 p-0 w-screen h-screen;
+  }
+}
