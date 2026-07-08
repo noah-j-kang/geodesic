@@ -1,5 +1,10 @@
 import { create } from 'zustand'
 
+export interface ArtistResult {
+  id: string;
+  name: string;
+}
+
 export interface HUDState {
   timbral_density_h0: number;
   cyclic_frequency_h1: number;
@@ -31,6 +36,12 @@ interface UIStore {
   nodes: NodeData[];
   activeNodeId: string | null;
 
+  // Search state
+  searchQuery: string;
+  searchResults: ArtistResult[];
+  isSearching: boolean;
+  selectedArtist: ArtistResult | null;
+
   // Actions
   setHUDState: (newState: Partial<HUDState>) => void;
   setTargetVector: (vector: number[]) => void;
@@ -39,6 +50,12 @@ interface UIStore {
   setCameraTarget: (target: [number, number, number]) => void;
   setNodes: (nodes: NodeData[]) => void;
   setActiveNode: (id: string | null, triggerAudio: boolean) => void;
+
+  // Search Actions
+  setSearchQuery: (query: string) => void;
+  setSearchResults: (results: ArtistResult[]) => void;
+  setIsSearching: (isSearching: boolean) => void;
+  setSelectedArtist: (artist: ArtistResult | null) => void;
 }
 
 // Generate some mock nodes for testing the InstancedMesh
@@ -73,6 +90,11 @@ export const useUIStore = create<UIStore>((set) => ({
   nodes: generateMockNodes(10000), // Renders 10,000 independent vector nodes
   activeNodeId: null,
 
+  searchQuery: '',
+  searchResults: [],
+  isSearching: false,
+  selectedArtist: null,
+
   setHUDState: (newState) => 
     set((state) => ({ hudState: { ...state.hudState, ...newState } })),
   setTargetVector: (vector) => set({ targetVector: vector }),
@@ -80,5 +102,10 @@ export const useUIStore = create<UIStore>((set) => ({
   setIsReconnecting: (reconnecting) => set({ isReconnecting: reconnecting }),
   setCameraTarget: (target) => set({ cameraTarget: target }),
   setNodes: (nodes) => set({ nodes }),
-  setActiveNode: (id, triggerAudio) => set({ activeNodeId: id })
+  setActiveNode: (id, triggerAudio) => set({ activeNodeId: id }),
+  
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  setSearchResults: (results) => set({ searchResults: results }),
+  setIsSearching: (isSearching) => set({ isSearching }),
+  setSelectedArtist: (artist) => set({ selectedArtist: artist }),
 }))
