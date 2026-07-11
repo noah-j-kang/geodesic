@@ -117,18 +117,18 @@ export default function ActiveNodeInspector() {
   if (!activeNode) return null;
 
   return (
-    <div className="absolute bottom-8 left-8 z-50 w-72 bg-graphite/80 backdrop-blur-md border border-white/20 p-4 rounded-lg flex flex-col gap-3 shadow-2xl">
+    <div className="w-full flex flex-col gap-3">
       <div className="flex items-center gap-4">
         {/* Desaturated Album Art */}
         <img 
           src={activeNode.metadata.album_art_url} 
           alt="Album Art" 
-          className="w-12 h-12 rounded object-cover grayscale opacity-80"
+          className={`w-12 h-12 rounded object-cover transition-all duration-500 ${isPlaying ? 'grayscale-0 opacity-100 shadow-[0_0_15px_rgba(34,211,238,0.4)]' : 'grayscale opacity-80'}`}
         />
         <div className="flex flex-col flex-1 overflow-hidden">
           <span className="text-xs text-white/80 font-bold truncate">{activeNode.metadata.track_title}</span>
           <span className="text-[10px] text-white/50 truncate mb-1">{activeNode.metadata.artist_name}</span>
-          <span className="text-[10px] text-white/40 font-mono">W_p Dist: {activeNode.distance_l2.toFixed(3)}</span>
+          <span className="text-[10px] text-white/40 font-mono">Similarity Dist: {activeNode.distance_l2.toFixed(3)}</span>
         </div>
         
         {/* Play Control */}
@@ -138,7 +138,7 @@ export default function ActiveNodeInspector() {
           className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all ${
             errorStatus === 'DEAD_LINK' ? 'border-red-500/50 text-red-500/50' :
             errorStatus === 'AUTOPLAY_BLOCKED' ? 'border-yellow-500 text-yellow-500 animate-pulse' :
-            'border-white/40 hover:border-white text-white'
+            isPlaying ? 'border-cyan-400 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'border-white/40 hover:border-white text-white'
           }`}
         >
           {isBuffering && errorStatus !== "DEAD_LINK" ? (
@@ -167,7 +167,7 @@ export default function ActiveNodeInspector() {
       <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mt-1 relative">
         <div 
           ref={scrubberRef} 
-          className={`h-full absolute top-0 left-0 transition-none ${errorStatus === "DEAD_LINK" ? 'bg-red-500' : 'bg-white'}`}
+          className={`h-full absolute top-0 left-0 transition-none ${errorStatus === "DEAD_LINK" ? 'bg-red-500' : isPlaying ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]' : 'bg-white/70'}`}
           style={{ width: '0%' }}
         />
       </div>

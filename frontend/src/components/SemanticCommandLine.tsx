@@ -52,7 +52,7 @@ export default function SemanticCommandLine() {
   };
 
   return (
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50">
+    <div className="w-full">
       <form onSubmit={handleSubmit} className="relative group">
         <div className={`absolute inset-0 bg-white/5 rounded-lg blur transition-opacity ${status === 'error' ? 'bg-red-500/20' : ''}`} />
         <input
@@ -61,7 +61,7 @@ export default function SemanticCommandLine() {
           onChange={(e) => setQuery(e.target.value)}
           disabled={status === 'throttled'}
           placeholder="ENTER SEMANTIC COMMAND..."
-          className={`w-full bg-graphite/80 backdrop-blur-md border ${status === 'error' ? 'border-red-500 text-red-500' : status === 'throttled' ? 'border-yellow-500 text-yellow-500' : 'border-white/20 text-white'} p-4 rounded-lg outline-none focus:border-white/50 transition-colors placeholder-white/30 font-mono text-sm shadow-xl`}
+          className={`relative w-full bg-graphite/80 backdrop-blur-md border ${status === 'error' ? 'border-red-500 text-red-500' : status === 'throttled' ? 'border-yellow-500 text-yellow-500' : 'border-white/20 text-white'} p-4 pl-12 rounded-lg outline-none focus:border-cyan-400/50 transition-colors placeholder-white/30 font-mono text-sm shadow-xl`}
         />
         {status === 'error' || status === 'throttled' ? (
           <div className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold tracking-widest ${status === 'error' ? 'text-red-500' : 'text-yellow-500'}`}>

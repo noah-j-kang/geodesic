@@ -98,32 +98,32 @@ const ArtistSearchBar: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full max-w-md mx-auto" ref={dropdownRef}>
+    <div className="w-full" ref={dropdownRef}>
       <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+        <div className="absolute inset-0 bg-white/5 rounded-lg blur transition-opacity"></div>
         <input
           type="text"
           value={inputValue}
           onChange={handleInputChange}
           onFocus={() => { if (searchResults.length > 0) setShowDropdown(true); }}
           placeholder="Search for an artist..."
-          className="relative w-full bg-slate-900/70 backdrop-blur-xl border border-slate-700/50 text-slate-200 px-5 py-3.5 rounded-lg focus:outline-none focus:border-emerald-500/50 transition-all shadow-xl placeholder:text-slate-500 font-medium"
+          className="relative w-full bg-graphite/80 backdrop-blur-md border border-white/20 text-white p-4 pl-12 rounded-lg outline-none focus:border-cyan-400/50 transition-colors placeholder-white/30 font-mono text-sm shadow-xl"
         />
         {isSearching && (
           <div className="absolute right-5 top-1/2 -translate-y-1/2 z-10">
-            <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+            <div className="w-5 h-5 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin"></div>
           </div>
         )}
       </div>
 
       {showDropdown && searchResults.length > 0 && (
-        <div className="absolute mt-2 w-full z-[100] bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-lg overflow-hidden shadow-2xl">
+        <div className="absolute bottom-[calc(100%+8px)] w-full z-[100] bg-graphite/90 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden shadow-2xl">
           <ul className="max-h-60 overflow-y-auto">
             {searchResults.map((artist) => (
               <li 
                 key={artist.id}
                 onClick={() => handleSelectArtist(artist)}
-                className="px-5 py-3.5 text-slate-300 hover:bg-emerald-500/20 hover:text-emerald-300 cursor-pointer transition-colors border-b border-slate-800/50 last:border-0 font-medium"
+                className="px-5 py-3.5 text-white/70 hover:bg-white/10 hover:text-cyan-400 cursor-pointer transition-colors border-b border-white/10 last:border-0 font-mono text-sm"
               >
                 {artist.name}
               </li>
@@ -133,7 +133,7 @@ const ArtistSearchBar: React.FC = () => {
       )}
       
       {showDropdown && inputValue.trim().length > 0 && !isSearching && searchResults.length === 0 && (
-        <div className="absolute mt-2 w-full z-[100] bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-lg shadow-2xl p-5 text-center text-slate-500 font-medium">
+        <div className="absolute bottom-[calc(100%+8px)] w-full z-[100] bg-graphite/90 backdrop-blur-md border border-white/20 rounded-lg shadow-2xl p-5 text-center text-white/50 font-mono text-sm">
           No artists found
         </div>
       )}
