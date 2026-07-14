@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, status
 from schemas.gateway import SessionUpdateRequest
 from services.db import upsert_user_session
 from core.auth import verify_jwt
-import asyncio
 
 router = APIRouter()
 

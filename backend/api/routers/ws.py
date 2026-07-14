@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Dict
 
@@ -21,6 +22,7 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+
 @router.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     """
@@ -31,8 +33,14 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
         while True:
             # Receive coordinate updates from the Geodesic HUD
             data = await websocket.receive_text()
-            # Process the micro-adjustments here, echo back or forward as needed.
-            # E.g., just an ACK for now
-            await manager.send_personal_message(f"ACK: {data}", client_id)
+            try:
+                payload = json.loads(data)
+                # Process the micro-adjustments here, echo back or forward as needed.
+                if isinstance(payload, dict) and payload.get("type") == "HUD_UPDATE":
+                    await manager.send_personal_message(f"ACK_HUD: {json.dumps(payload.get('data'))}", client_id)
+                else:
+                    await manager.send_personal_message(f"ACK: {data}", client_id)
+            except json.JSONDecodeError:
+                await manager.send_personal_message(f"ACK_TEXT: {data}", client_id)
     except WebSocketDisconnect:
         manager.disconnect(client_id)
