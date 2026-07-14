@@ -5,6 +5,7 @@ import Omnibar from './components/Omnibar';
 import PropertiesPanel from './components/PropertiesPanel';
 import LandingPage from './components/LandingPage';
 import FeaturesPage from './components/FeaturesPage';
+import HoverTooltip from './components/HoverTooltip';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
               <AuthProfile />
               <Omnibar />
               <PropertiesPanel />
+              <HoverTooltip />
             </div>
           </div>
         } />

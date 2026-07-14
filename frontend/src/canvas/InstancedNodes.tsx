@@ -13,6 +13,7 @@ export default function InstancedNodes() {
   const nodes = useUIStore((state) => state.nodes);
   const activeNodeId = useUIStore((state) => state.activeNodeId);
   const setActiveNode = useUIStore((state) => state.setActiveNode);
+  const setHoveredNode = useUIStore((state) => state.setHoveredNode);
 
   // Memoize positions and colors
   const { positions, colors } = useMemo(() => {
@@ -80,6 +81,8 @@ export default function InstancedNodes() {
     
     // Changing cursor style bypasses React re-render of canvas wrapper
     document.body.style.cursor = 'pointer';
+
+    setHoveredNode({ data: hoveredNode, x: e.clientX, y: e.clientY });
   };
 
   const handlePointerOut = (e: any) => {
@@ -94,6 +97,7 @@ export default function InstancedNodes() {
     }
     
     document.body.style.cursor = 'default';
+    setHoveredNode(null);
   };
 
   const handleClick = (e: any) => {
@@ -112,6 +116,7 @@ export default function InstancedNodes() {
         ref={meshRef}
         args={[undefined, undefined, nodes.length]}
         onPointerOver={handlePointerOver}
+        onPointerMove={handlePointerOver}
         onPointerOut={handlePointerOut}
         onClick={handleClick}
         frustumCulled={true}

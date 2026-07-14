@@ -4,20 +4,6 @@ import * as THREE from 'three';
 import InstancedNodes from './InstancedNodes';
 import { useUIStore } from '../store/useUIStore';
 
-// Camera controller component inside canvas
-function CameraRig() {
-  const cameraTarget = useUIStore((state) => state.cameraTarget);
-  const targetVec = new THREE.Vector3();
-
-  useFrame((state) => {
-    // Geodesic Camera Interpolation using lerp
-    targetVec.set(...cameraTarget);
-    // Smoothly pan camera towards target
-    state.camera.position.lerp(targetVec, 0.05); // Spring physics approximation
-  });
-
-  return null;
-}
 
 export default function WebGLManifold() {
   return (
@@ -31,9 +17,6 @@ export default function WebGLManifold() {
         
         {/* The visual core - thousands of interactive points */}
         <InstancedNodes />
-        
-        {/* Reactively adjusts camera to Zustand store target without React re-renders */}
-        <CameraRig />
         
         {/* Allows user to physically pan and zoom through acoustic space */}
         <MapControls 

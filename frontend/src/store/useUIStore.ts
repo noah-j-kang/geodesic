@@ -22,6 +22,9 @@ export interface NodeData {
     track_title: string;
     preview_url: string;
     album_art_url: string;
+    release_date?: string;
+    genre?: string;
+    play_count?: number;
   };
 }
 
@@ -36,6 +39,7 @@ interface UIStore {
   cameraTarget: [number, number, number];
   nodes: NodeData[];
   activeNodeId: string | null;
+  hoveredNode: { data: NodeData; x: number; y: number } | null;
 
   // Search state
   searchQuery: string;
@@ -52,6 +56,7 @@ interface UIStore {
   setCameraTarget: (target: [number, number, number]) => void;
   setNodes: (nodes: NodeData[]) => void;
   setActiveNode: (id: string | null, triggerAudio: boolean) => void;
+  setHoveredNode: (node: { data: NodeData; x: number; y: number } | null) => void;
 
   // Search Actions
   setSearchQuery: (query: string) => void;
@@ -60,22 +65,61 @@ interface UIStore {
   setSelectedArtist: (artist: ArtistResult | null) => void;
 }
 
-// Generate some mock nodes for testing the InstancedMesh
-const generateMockNodes = (count: number): NodeData[] => {
-  return Array.from({ length: count }).map((_, i) => ({
-    spotify_track_id: `mock_track_${i}`,
-    umap_x: (Math.random() - 0.5) * 100,
-    umap_y: (Math.random() - 0.5) * 100,
-    is_active: false,
-    distance_l2: Math.random() * 10,
-    metadata: {
-      artist_name: `Topological Artist ${i}`,
-      track_title: `Geodesic Anomaly ${i}`,
-      // 50% chance of a dead link to test error handling
-      preview_url: Math.random() > 0.5 ? 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' : 'invalid_url.mp3',
-      album_art_url: `https://picsum.photos/seed/${i}/100/100`,
-    }
-  }));
+const REAL_ARTISTS = [
+  "Aphex Twin", "Boards of Canada", "Brian Eno", "Burial", "Four Tet", 
+  "Autechre", "Jon Hopkins", "Nils Frahm", "Floating Points", "Bonobo",
+  "Flying Lotus", "Massive Attack", "Portishead", "Björk", "Radiohead",
+  "Arca", "SOPHIE", "FKA twigs", "Yves Tumor", "Oneohtrix Point Never",
+  "Tim Hecker", "William Basinski", "Steve Reich", "Philip Glass",
+  "John Coltrane", "Miles Davis", "Thelonious Monk", "Charles Mingus",
+  "MF DOOM", "Madvillain", "J Dilla", "Knxwledge", "Earl Sweatshirt"
+];
+
+const REAL_TITLES = [
+  "Windowlicker", "Dayvan Cowboy", "1/1", "Archangel", "New Energy",
+  "Gantz Graf", "Immunity", "Says", "Kuiper", "Cirrus",
+  "Cosmogramma", "Teardrop", "Glory Box", "Army of Me", "Idioteque",
+  "KiCk i", "Faceshopping", "Cellophane", "Gospel For A New Century", "Boring Angel",
+  "Virgins", "The Disintegration Loops", "Music for 18 Musicians", "Glassworks",
+  "A Love Supreme", "So What", "Round Midnight", "Goodbye Pork Pie Hat",
+  "Rhinestone Cowboy", "Accordion", "Donuts", "Hud Dreems", "Chum"
+];
+
+const GENRES = [
+  "IDM", "Ambient", "Electronic", "Experimental", "Trip Hop", 
+  "Jazz", "Avant-Garde", "Abstract Hip Hop", "Glitch", "Minimalism",
+  "Post-Rock", "Shoegaze", "Drone", "Neo-Classical", "Art Pop"
+];
+
+// Generate nodes with realistic data
+const generateRealNodes = (count: number): NodeData[] => {
+  return Array.from({ length: count }).map((_, i) => {
+    const artist = REAL_ARTISTS[Math.floor(Math.random() * REAL_ARTISTS.length)];
+    const title = REAL_TITLES[Math.floor(Math.random() * REAL_TITLES.length)];
+    const genre = GENRES[Math.floor(Math.random() * GENRES.length)];
+    
+    // Simulate clustering by assigning base coordinates based on genre index
+    const genreIndex = GENRES.indexOf(genre);
+    const angle = (genreIndex / GENRES.length) * Math.PI * 2;
+    const radius = 20 + Math.random() * 60;
+    
+    return {
+      spotify_track_id: `real_track_${i}`,
+      umap_x: Math.cos(angle) * radius + (Math.random() - 0.5) * 15,
+      umap_y: Math.sin(angle) * radius + (Math.random() - 0.5) * 15,
+      is_active: false,
+      distance_l2: Math.random() * 10,
+      metadata: {
+        artist_name: artist,
+        track_title: title,
+        preview_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', // Keeping valid preview for audio testing
+        album_art_url: `https://picsum.photos/seed/${i}/100/100`,
+        release_date: `${1990 + Math.floor(Math.random() * 34)}-0${Math.floor(Math.random() * 9) + 1}-15`,
+        genre: genre,
+        play_count: Math.floor(Math.random() * 1500000)
+      }
+    };
+  });
 };
 
 export const useUIStore = create<UIStore>((set) => ({
@@ -90,8 +134,9 @@ export const useUIStore = create<UIStore>((set) => ({
   isAppLaunched: false,
   
   cameraTarget: [0, 0, 50],
-  nodes: generateMockNodes(10000), // Renders 10,000 independent vector nodes
+  nodes: generateRealNodes(10000), // Renders 10,000 independent vector nodes
   activeNodeId: null,
+  hoveredNode: null,
 
   searchQuery: '',
   searchResults: [],
@@ -107,6 +152,7 @@ export const useUIStore = create<UIStore>((set) => ({
   setCameraTarget: (target) => set({ cameraTarget: target }),
   setNodes: (nodes) => set({ nodes }),
   setActiveNode: (id, triggerAudio) => set({ activeNodeId: id }),
+  setHoveredNode: (hoveredNode) => set({ hoveredNode }),
   
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSearchResults: (results) => set({ searchResults: results }),
