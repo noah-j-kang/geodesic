@@ -117,8 +117,8 @@ const partners = [
   { name: "Apple Music", symbol: "✦" },
 ];
 
-// ── Nav links (3 removed per spec) ───────────────────────────────────────────
-const navLinks = ["Home", "Discovery Engine", "Features", "FAQ"];
+// ── Nav links (1 removed per spec) ───────────────────────────────────────────
+const navLinks = ["Home", "Discovery Engine", "Features"];
 
 import { useNavigate } from 'react-router-dom';
 
@@ -198,7 +198,12 @@ export default function LandingPage() {
           {navLinks.map((link) => (
             <button
               key={link}
-              onClick={() => setActiveNav(link)}
+              onClick={() => {
+                setActiveNav(link);
+                if (link === 'Discovery Engine') navigate('/app');
+                else if (link === 'Features') navigate('/features');
+                else navigate('/');
+              }}
               className="px-3.5 py-1.5 rounded-lg text-xs transition-all duration-200"
               style={{
                 fontFamily: "Inter, sans-serif",

@@ -4,12 +4,14 @@ import WebGLManifold from './canvas/WebGLManifold';
 import Omnibar from './components/Omnibar';
 import PropertiesPanel from './components/PropertiesPanel';
 import LandingPage from './components/LandingPage';
+import FeaturesPage from './components/FeaturesPage';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
         <Route path="/app" element={
           <div className="w-full h-full relative">
             {/* 3D Canvas Layer - z-0 */}
