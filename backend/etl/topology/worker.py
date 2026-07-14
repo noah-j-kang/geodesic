@@ -1,6 +1,7 @@
 import time
 import base64
 import numpy as np
+import httpx
 from celery import Celery
 from sklearn.decomposition import PCA
 from gtda.time_series import SingleTakensEmbedding
@@ -102,7 +103,20 @@ def extract_topology(self, payload):
             "compute_time_ms": compute_time_ms
         }
 
-        return result
+        # Egress to HNSW Node (Running on internal Docker network at vector-search:8001)
+        try:
+            with httpx.Client() as client:
+                client.post("http://vector-search:8001/index", json={
+                    "id": result["spotify_track_id"],
+                    "vector": result["topological_signature"]["vector"]
+                }, timeout=5.0)
+        except Exception as e:
+            print(f"Failed to push to HNSW: {e}")
+
+        # In a real environment, we would also push the metadata to the Postgres DB here.
+        # This could be via the api-gateway or direct async pg driver.
+
+        return {"status": "success", "track_id": result["spotify_track_id"]}
 
     except Exception as e:
         return {"status": "failed", "reason": str(e)}

@@ -149,6 +149,25 @@ services:
         limits:
           memory: 1G
 
+  etl-scout:
+    build:
+      context: ./backend/etl/ingestion
+    container_name: topos_etl_scout
+    command: python scout.py
+    environment:
+      - CELERY_BROKER_URL=redis://broker:6379/0
+    networks:
+      - backend-tier
+    depends_on:
+      broker:
+        condition: service_healthy
+    volumes:
+      - ./backend/etl/ingestion:/app
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
   etl-worker-dsp:
     build:
       context: ./backend/etl/dsp

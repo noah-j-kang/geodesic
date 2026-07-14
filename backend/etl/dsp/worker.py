@@ -69,7 +69,11 @@ def extract_features(self, payload):
 
         # Egress & Cleanup
         os.remove(local_audio_path)
-        return result
+
+        # Chain to Topology Engine
+        app.send_task('topology.extract_topology', args=[result])
+
+        return {"status": "success", "track_id": payload.get('spotify_track_id')}
 
     except Exception as e:
         if os.path.exists(local_audio_path):

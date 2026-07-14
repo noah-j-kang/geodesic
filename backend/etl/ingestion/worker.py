@@ -8,14 +8,14 @@ app = Celery('ingestion', broker='redis://localhost:6379/0')
 @app.task(name='ingestion.process_track', bind=True, max_retries=3)
 def process_track(self, track_data):
     """
-    track_data is expected to be a dict representing a track from Spotify API.
+    track_data is expected to be a dict representing a track from Deezer API.
     """
-    popularity = track_data.get('popularity', 100)
-    preview_url = track_data.get('preview_url')
+    rank = track_data.get('rank', 1000000)
+    preview_url = track_data.get('preview')
     track_id = track_data.get('id')
 
-    if popularity >= 50:
-        return {"status": "skipped", "reason": "popularity >= 50"}
+    if rank >= 300000:
+        return {"status": "skipped", "reason": "rank >= 300000 (too popular)"}
 
     if not preview_url:
         return {"status": "skipped", "reason": "no preview_url"}
@@ -38,13 +38,16 @@ def process_track(self, track_data):
         return {"status": "failed", "reason": str(e)}
 
     payload = {
-        "spotify_track_id": track_id,
+        "spotify_track_id": str(track_id), # Keeping the key name the same so downstream math and DB doesn't break
         "metadata": {
-            "artist_name": track_data.get('artists', [{}])[0].get('name', 'Unknown'),
-            "track_title": track_data.get('name', 'Unknown')
+            "artist_name": track_data.get('artist', {}).get('name', 'Unknown'),
+            "track_title": track_data.get('title', 'Unknown')
         },
         "local_audio_path": local_audio_path,
         "download_timestamp": datetime.now(timezone.utc).isoformat()
     }
 
-    return payload
+    # Chain to DSP worker
+    app.send_task('dsp.extract_features', args=[payload])
+
+    return {"status": "success", "track_id": track_id}
