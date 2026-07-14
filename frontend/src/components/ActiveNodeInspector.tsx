@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { useUIStore } from '../store/useUIStore';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { useUIStore, NodeData } from '../store/useUIStore';
 
 // Singleton Audio Controller (outside React tree to prevent re-instantiation)
 const audioSingleton = new Audio();
@@ -16,7 +16,14 @@ export default function ActiveNodeInspector() {
   const [errorStatus, setErrorStatus] = useState<"NONE" | "DEAD_LINK" | "AUTOPLAY_BLOCKED">("NONE");
   const [isBuffering, setIsBuffering] = useState(false);
 
-  const activeNode = nodes.find(n => n.spotify_track_id === activeNodeId);
+  // Memoize map for O(1) lookups
+  const idToNode = useMemo(() => {
+    const map = new Map<string, NodeData>();
+    nodes.forEach(n => map.set(n.spotify_track_id, n));
+    return map;
+  }, [nodes]);
+
+  const activeNode = activeNodeId ? idToNode.get(activeNodeId) : null;
 
   // Handle active_node changes
   useEffect(() => {

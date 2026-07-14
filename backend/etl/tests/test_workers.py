@@ -1,8 +1,5 @@
-import os
-import json
 import base64
 import numpy as np
-import pytest
 from unittest.mock import patch, mock_open, MagicMock
 
 # Import the celery tasks we want to test
