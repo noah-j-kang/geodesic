@@ -24,3 +24,4 @@ When asked to generate code for this repository:
 2. Read the corresponding `/plan_docs` file for that Workstream to ensure you understand the inputs, outputs, and failure states.
 3. Write modular, testable code. Include error handling for the specific "Failure States" documented in the PRD.
 4. Output the code with clear documentation referencing the mathematical concepts (e.g., Takens' Theorem, Wasserstein distance) where applicable.
+5. Change `/plan_docs/prd.md` and relevant files in `/plan_docs` if they are outdated or as changes to code are created. Notify the user if changes to these docs are needed.
