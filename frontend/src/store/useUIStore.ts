@@ -30,7 +30,8 @@ interface UIStore {
   targetVector: number[]; // 1500d array
   currentUmapCoords: [number, number];
   isReconnecting: boolean;
-  
+  isAppLaunched: boolean;
+
   // Manifold state
   cameraTarget: [number, number, number];
   nodes: NodeData[];
@@ -43,6 +44,7 @@ interface UIStore {
   selectedArtist: ArtistResult | null;
 
   // Actions
+  setIsAppLaunched: (launched: boolean) => void;
   setHUDState: (newState: Partial<HUDState>) => void;
   setTargetVector: (vector: number[]) => void;
   setCurrentUmapCoords: (coords: [number, number]) => void;
@@ -85,6 +87,7 @@ export const useUIStore = create<UIStore>((set) => ({
   targetVector: new Array(1500).fill(0),
   currentUmapCoords: [0, 0],
   isReconnecting: false,
+  isAppLaunched: false,
   
   cameraTarget: [0, 0, 50],
   nodes: generateMockNodes(10000), // Renders 10,000 independent vector nodes
@@ -95,6 +98,7 @@ export const useUIStore = create<UIStore>((set) => ({
   isSearching: false,
   selectedArtist: null,
 
+  setIsAppLaunched: (launched) => set({ isAppLaunched: launched }),
   setHUDState: (newState) => 
     set((state) => ({ hudState: { ...state.hudState, ...newState } })),
   setTargetVector: (vector) => set({ targetVector: vector }),
